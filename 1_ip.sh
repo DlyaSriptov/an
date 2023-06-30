@@ -20,11 +20,3 @@ sed -i -e "11a\        addresses: [$netconfDns]"  /etc/netplan/01-netcfg.yaml
 netplan --debug generate
 netplan --debug apply 
 
-#echo -n "До перезагрузки компьютера осталось: "
-#for ((i=10; i > 0; i--))
-#do
-    #sleep 1
-    #echo -n  "$i "
-#done
-
-#reboot
