@@ -57,6 +57,9 @@ chmod -R 755 /var/www/
 # 9. Переходим в новый каталог и создаём пользователя PostgreSQL  peertube. При появлении запроса нужно ввести пароль для нового пользователя.
 echo -en "\033[32m Введите пароль для пользователя базы данных postgres: \033[0m \n"
 cd /var/www/peertube
+sudo -u postgres psql -c "REVOKE ALL ON DATABASE postgres FROM peertube;"
+sudo -u postgres psql -c "REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM peertube;"
+sudo -u postgres psql -c "DROP DATABASE peertube_prod;"
 sudo -u postgres createuser -P peertube
 read -p "Введите, пожалуйста, третий раз пароль пользователя базы данных postgres: " postgresPass 
 # ============================================================
