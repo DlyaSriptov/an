@@ -8,7 +8,7 @@ keyScan=$(openssl rand -hex 32)
 read -p "Введите имя домена для PeerTube: " peerTubeNameDomain
 read -p "Введите адрес электронной почты администратора PeerTube: " emailScan
 
-sudo apt-get install curl sudo unzip vim
+sudo apt-get -y -q install curl sudo unzip
 # ============================================================
 
 # 1. Установка Node.js
@@ -22,14 +22,14 @@ echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/source
 # ============================================================
 
 # 3. Установка Python
-sudo apt update
-sudo apt install python3-dev python-is-python3 # python-is-python2 should also work
+sudo apt-get update
+sudo apt-get -y -q install python3-dev python-is-python3 # python-is-python2 should also work
 python --version # Should be >= 2.x or >= 3.x
 # ============================================================
 
 # 4 .Установка общих зависимостей
-sudo apt update
-sudo apt install certbot nginx ffmpeg postgresql postgresql-contrib openssl g++ make redis-server git cron wget
+sudo apt-get update
+sudo apt-get -y -q install certbot nginx ffmpeg postgresql postgresql-contrib openssl g++ make redis-server git cron wget
 ffmpeg -version # Should be >= 4.1
 g++ -v # Should be >= 5.x
 redis-server --version # Should be >= 6.x
@@ -109,14 +109,38 @@ sudo sed -i -e "s|password: 'peertube'|password: '$postgresPass'|" /var/www/peer
 sudo sed -i -e "s|email: 'admin@example.com'|email: '$emailScan'|" /var/www/peertube/config/production.yaml
 # ============================================================
 
-
-
-
+# 19. Копируем шаблон файла конфигурации NGINX для PeerTube в каталог /etc/nginx/sites-available
 sudo cp /var/www/peertube/peertube-latest/support/nginx/peertube /etc/nginx/sites-available/peertube
+# ============================================================
+
+# 20. В файле /etc/nginx/sites-available/peertube меняем имя домена (1-я строка), и локальный адрес:порт (2-я строка)
+sudo sed -i 's/${WEBSERVER_HOST}/$peerTubeNameDomain/g' /etc/nginx/sites-available/peertube
+sudo sed -i 's/${PEERTUBE_HOST}/127.0.0.1:9000/g' /etc/nginx/sites-available/peertube
+# ============================================================
+
+# 21. Создаём ссылку на конфиг. файл peertube в каталоге /etc/nginx/sites-enabled
+sudo ln -s /etc/nginx/sites-available/peertube /etc/nginx/sites-enabled/peertube
+# ============================================================
+
+# 22. Установка сертификата Let's Encrypt
+sudo systemctl stop nginx
+sudo certbot certonly --standalone --post-hook "systemctl restart nginx"
+sudo systemctl reload nginx
+# ============================================================
+
+# 23. Скопируйте файл 30-peertube-tcp.conf в каталог с системными настройками
+sudo cp /var/www/peertube/peertube-latest/support/sysctl.d/30-peertube-tcp.conf /etc/sysctl.d/
+# ============================================================
+
+# 24. Запускаем ранее скопированный файл
+sudo sysctl -p /etc/sysctl.d/30-peertube-tcp.conf
+# ============================================================
+
+# 25. Завершающие настройки и запуск службы PeerTube
+sudo cp /var/www/peertube/peertube-latest/support/systemd/peertube.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable peertube
+sudo systemctl start peertube
 
 
-
-
-
-
-
+# cd /var/www/peertube/peertube-latest && NODE_CONFIG_DIR=/var/www/peertube/config NODE_ENV=production npm run reset-password -- -u root
