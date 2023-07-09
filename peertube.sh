@@ -60,6 +60,7 @@ cd /var/www/peertube
 sudo -u postgres psql -c "REVOKE ALL ON DATABASE postgres FROM peertube;"
 sudo -u postgres psql -c "REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM peertube;"
 sudo -u postgres psql -c "DROP DATABASE peertube_prod;"
+sudo -u postgres dropuser peertube
 sudo -u postgres createuser -P peertube
 read -p "Введите, пожалуйста, третий раз пароль пользователя базы данных postgres: " postgresPass 
 # ============================================================
