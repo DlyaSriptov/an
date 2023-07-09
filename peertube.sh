@@ -52,7 +52,7 @@ sudo passwd peertube
 
 # 8. Даём права для nginx на каталог www/peertube
 sudo chown -R www-data:www-data /var/www/peertube
-sudo chmod -R 755 /var/www/
+sudo chmod -R 755 /var/www/peertube
 # ============================================================
 
 # 9. Переходим в новый каталог и создаём пользователя PostgreSQL  peertube. При появлении запроса нужно ввести пароль для нового пользователя.
