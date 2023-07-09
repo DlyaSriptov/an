@@ -40,6 +40,7 @@ sudo systemctl start redis postgresql
 # ============================================================
 
 # 6. Создание пользователя peertube
+sudo rm -rf /var/www/peertube
 sudo mkdir /var/www/peertube
 sudo useradd -m -d /var/www/peertube -s /bin/bash -p peertube peertube
 # ============================================================
@@ -49,9 +50,9 @@ echo -en "\033[32m Введите пароль для пользователя p
 sudo passwd peertube
 # ============================================================
 
-# 8. Даём права для nginx на каталог www
-chown -R www-data:www-data /var/www/
-chmod -R 755 /var/www/
+# 8. Даём права для nginx на каталог www/peertube
+sudo chown -R www-data:www-data /var/www/peertube
+sudo chmod -R 755 /var/www/
 # ============================================================
 
 # 9. Переходим в новый каталог и создаём пользователя PostgreSQL  peertube. При появлении запроса нужно ввести пароль для нового пользователя.
