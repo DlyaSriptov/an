@@ -40,8 +40,9 @@ sudo systemctl start redis postgresql
 # ============================================================
 
 # 6. Создание пользователя peertube
+sudo  killall -9 -u peertube
+sudo  deluser --remove-home peertube
 sudo rm -rf /var/www/peertube
-sudo mkdir /var/www/peertube
 sudo useradd -m -d /var/www/peertube -s /bin/bash -p peertube peertube
 # ============================================================
 
@@ -115,7 +116,7 @@ sudo cp /var/www/peertube/peertube-latest/support/nginx/peertube /etc/nginx/site
 # ============================================================
 
 # 19. В файле /etc/nginx/sites-available/peertube меняем имя домена (1-я строка), и локальный адрес:порт (2-я строка)
-sudo sed -i 's/${WEBSERVER_HOST}/$peerTubeNameDomain/g' /etc/nginx/sites-available/peertube
+sudo sed -i 's|${WEBSERVER_HOST}|$peerTubeNameDomain|g' /etc/nginx/sites-available/peertube
 sudo sed -i 's/${PEERTUBE_HOST}/127.0.0.1:9000/g' /etc/nginx/sites-available/peertube
 # ============================================================
 
@@ -142,6 +143,7 @@ sudo cp /var/www/peertube/peertube-latest/support/systemd/peertube.service /etc/
 sudo systemctl daemon-reload
 sudo systemctl enable peertube
 sudo systemctl start peertube
+sudo systemctl start nginx
 
 
 # cd /var/www/peertube/peertube-latest && NODE_CONFIG_DIR=/var/www/peertube/config NODE_ENV=production npm run reset-password -- -u root
