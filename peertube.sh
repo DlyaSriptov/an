@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# 132 строка - вписать вручную имя домена
+
 peerTubeNameDomain=A
 postgresPass=A
 emailScan=A
@@ -8,42 +10,57 @@ keyScan=$(openssl rand -hex 32)
 read -p "Введите имя домена для PeerTube: " peerTubeNameDomain
 read -p "Введите адрес электронной почты администратора PeerTube: " emailScan
 
-sudo apt-get -y -q install curl sudo unzip
+#sudo apt-get -y -q install curl sudo unzip
+sudo apt-get -y -q install ffmpeg openssl g++ make redis-server git cron
 # ============================================================
 
 # 1. Установка Node.js
 curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-# ============================================================
+sudo apt-get -y -q install nodejs
 
-# 2. Установка Yarn
-sudo apt-get -y -q install yarn
-curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+sudo apt-get -y -q install gcc gСЮДА_ВПИСАТЬ_ИМЯ_ДОМЕНА++ make
+#=================================================
+
+#2. Установка Yarn
+sudo curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+sudo apt-get -y -q update
 sudo apt-get -y -q install yarn
-# ============================================================
 
-# 3. Установка Python
+#curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/yarnkey.gpg >/dev/null
+#    echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+#     sudo apt-get update && sudo apt-get install yarn
+#================================================= 
+
+# 3. Установка Redis
+sudo apt-get -y -q update
+curl https://packages.redis.io/gpg | sudo apt-key add -
+echo "deb https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+sudo apt-get -y -q update
+sudo apt-get -y -q install redis
+sudo apt-cache policy info redis
+redis-server --version
+sudo systemctl start redis-server
+sudo systemctl enable redis-server
+systemctl status redis-server
+#=================================================
+
+# 4. Установка PostgreSQL
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" >> /etc/apt/sources.list.d/pgdg.list'
+sudo apt-get -y -q update
+sudo apt-get -y -q install postgresql postgresql-contrib
+sudo systemctl start postgresql
+#pg_ctlcluster 12 main start 
+#================================================= 
+
+# 5. Установка Python
 sudo apt-get -y -q update
 sudo apt-get -y -q install python3-dev python-is-python3 # python-is-python2 should also work
 python --version # Should be >= 2.x or >= 3.x
 # ============================================================
 
-# 4 .Установка общих зависимостей
-sudo apt-get -y -q update
-sudo apt-get -y -q install certbot nginx ffmpeg postgresql postgresql-contrib openssl g++ make redis-server git cron wget
-ffmpeg -version # Should be >= 4.1
-g++ -v # Should be >= 5.x
-redis-server --version # Should be >= 6.x
-# ============================================================
-
-# 5. Запуск служб PostgreSQL и Redis
-sudo systemctl start redis postgresql
-# ============================================================
-
 # 6. Создание пользователя peertube
-sudo  killall -9 -u peertube
-sudo  deluser --remove-home peertube
-sudo rm -rf /var/www/peertube
 sudo useradd -m -d /var/www/peertube -s /bin/bash -p peertube peertube
 # ============================================================
 
@@ -54,11 +71,6 @@ sudo passwd peertube
 
 # 8. Переходим в новый каталог и создаём пользователя PostgreSQL  peertube. При появлении запроса нужно ввести пароль для нового пользователя.
 echo -en "\033[32m Введите пароль для пользователя базы данных postgres: \033[0m \n"
-cd /var/www/peertube
-sudo -u postgres psql -c "REVOKE ALL ON DATABASE postgres FROM peertube;"
-sudo -u postgres psql -c "REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM peertube;"
-sudo -u postgres psql -c "DROP DATABASE peertube_prod;"
-sudo -u postgres dropuser peertube
 sudo -u postgres createuser -P peertube
 read -p "Введите, пожалуйста, третий раз пароль пользователя базы данных postgres: " postgresPass 
 # ============================================================
@@ -117,7 +129,7 @@ sudo cp /var/www/peertube/peertube-latest/support/nginx/peertube /etc/nginx/site
 # ============================================================
 
 # 19. В файле /etc/nginx/sites-available/peertube меняем имя домена (1-я строка), и локальный адрес:порт (2-я строка)
-sudo sed -i 's|${WEBSERVER_HOST}|$peerTubeNameDomain|g' /etc/nginx/sites-available/peertube
+sudo sed -i 's|${WEBSERVER_HOST}|СЮДА_ВПИСАТЬ_ИМЯ_ДОМЕНА|g' /etc/nginx/sites-available/peertube
 sudo sed -i 's/${PEERTUBE_HOST}/127.0.0.1:9000/g' /etc/nginx/sites-available/peertube
 # ============================================================
 
@@ -147,4 +159,6 @@ sudo systemctl start peertube
 sudo systemctl start nginx
 
 
-# cd /var/www/peertube/peertube-latest && NODE_CONFIG_DIR=/var/www/peertube/config NODE_ENV=production npm run reset-password -- -u root
+# Эта строка вводится вручную после установки. Нужна для задания нового пароля административного аккаунта с ником root
+# cd /var/www/peertube/peertube-latest && sudo NODE_CONFIG_DIR=/var/www/peertube/config NODE_ENV=production npm run reset-password -- -u root
+
